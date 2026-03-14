@@ -1,271 +1,97 @@
-# Claude Code Skill for OpenClaw
+# Claude Code Agent Skill
 
-> Call Claude Code CLI from OpenClaw to read codebase, edit files, run commands, and automate coding tasks.
+通过 OpenClaw 调用 Claude Code 执行编程任务。支持单次执行、子代理（Sub-agents）和 Agent Teams 模式。
 
-## Overview
+## 激活条件
 
-This skill provides integration with Claude Code CLI, allowing OpenClaw to leverage Claude Code's powerful coding capabilities including:
-- Reading and understanding codebases
-- Editing files with AI assistance
-- Running terminal commands
-- Creating commits and PRs
-- Code review and debugging
-- Running sub-agents for parallel tasks
+当用户提到以下内容时使用：
+- "调用 claude code"、"用 claude code"、"run claude code"
+- "claude -p"、"headless mode"
+- "subagent"、"子代理"
+- "agent team"、"多代理"
 
-## Prerequisites
+## 前置要求
 
-1. **Install Claude Code CLI**:
-   ```bash
-   curl -fsSL https://claude.ai/install.sh | bash
-   ```
+1. Claude Code CLI 已安装：`curl -fsSL https://claude.ai/install.sh | bash`
+2. 已登录：`claude auth login`
+3. 环境变量已配置（ANTHROPIC_API_KEY 等）
 
-2. **Authenticate**:
-   ```bash
-   claude auth login
-   ```
+## 使用方法
 
-3. **Verify installation**:
-   ```bash
-   claude --version
-   ```
+### 1. 单次执行 (Headless Mode)
 
-## Usage
+\`\`\`bash
+claude -p "你的任务描述" [选项]
+\`\`\`
 
-### Basic Query
+常用选项：
+- \`--allowedTools "Read,Edit,Bash"\` - 自动批准的工具
+- \`--output-format json\` - JSON 格式输出
+- \`--model sonnet|opus|haiku\` - 指定模型
 
-Ask Claude Code a question about your codebase:
+### 2. Sub-agents 模式
 
-```
-/claude-code What does the auth module do?
-```
+创建专用子代理处理特定任务。子代理定义在 \`~/.claude/agents/\` 目录。
 
-### Run a Task
+### 3. Agent Teams 模式
 
-Execute a coding task:
-
-```
-/claude-code write tests for the login function
-```
-
-### Continue Previous Session
-
-Resume the most recent conversation:
-
-```
-/claude-code --continue
-```
-
-### Resume Specific Session
-
-Resume a session by name or ID:
-
-```
-/claude-code --resume auth-fix
-```
-
-### Code Review
-
-Review code changes:
-
-```
-/claude-code review the recent changes
-```
-
-### Create Commit
-
-Commit changes with a descriptive message:
-
-```
-/claude-code commit my changes
-```
-
-### Run with Custom Model
-
-Use a specific model:
-
-```
-/claude-code --model opus explain this code
-```
-
-### JSON Output
-
-Get structured JSON output for scripting:
-
-```
-/claude-code --output-format json --print "list all functions"
-```
-
-## CLI Reference
-
-### Common Commands
-
-| Command | Description |
-|:---|:---|
-| `claude -p "query"` | Query via SDK, then exit |
-| `claude -c` | Continue most recent conversation |
-| `claude -r "session" "query"` | Resume session by ID or name |
-| `claude --print "query"` | Print response without interactive mode |
-| `claude update` | Update to latest version |
-| `claude auth status` | Show authentication status |
-
-### Useful Flags
-
-| Flag | Description | Example |
-|:---|:---|:---|
-| `--print`, `-p` | Non-interactive mode | `claude -p "query"` |
-| `--continue`, `-c` | Continue session | `claude -c` |
-| `--resume`, `-r` | Resume specific session | `claude -r session-id "task"` |
-| `--model` | Specify model | `claude --model opus "task"` |
-| `--output-format` | Output format (text/json/stream-json) | `claude -p --output-format json "task"` |
-| `--max-turns` | Limit agentic turns | `claude -p --max-turns 3 "task"` |
-| `--max-budget-usd` | Max API spend | `claude -p --max-budget-usd 5 "task"` |
-| `--add-dir` | Additional directories | `claude --add-dir ../lib "task"` |
-| `--mcp-config` | Load MCP servers | `claude --mcp-config ./mcp.json` |
-
-### Environment Variables
-
-| Variable | Description |
-|:---|:---|
-| `ANTHROPIC_API_KEY` | API key for authentication |
-| `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` | Enable CLAUDE.md from additional dirs |
-
-## Integration with OpenClaw
-
-This skill is designed to work with OpenClaw's exec tool. Here's how it integrates:
-
-### Method 1: Direct CLI Execution
-
-Use OpenClaw's exec tool to run Claude Code commands:
-
-```bash
-claude -p "What files were changed in the last commit?"
-```
-
-### Method 2: Session Management
-
-Manage Claude Code sessions through OpenClaw:
-
-```bash
-# Continue last session
-claude -c
-
-# Resume specific session
-claude -r my-session "Continue working on the feature"
-```
-
-### Method 3: MCP Integration
-
-For advanced integration, configure MCP servers:
-
-```bash
-claude mcp add <server-name> <config>
-```
-
-## Examples
-
-### Example 1: Explore a New Codebase
-
-```
-/claude-code Explore the project structure and tell me what the main components are
-```
-
-### Example 2: Fix a Bug
-
-```
-/claude-code Find and fix the login bug - users can't log in with correct credentials
-```
-
-### Example 3: Write Tests
-
-```
-/claude-code Write unit tests for the payment module
-```
-
-### Example 4: Refactor Code
-
-```
-/claude-code Refactor the auth middleware to use async/await
-```
-
-### Example 5: Code Review
-
-```
-/claude-code Review this PR for security issues
-```
-
-### Example 6: Batch Operations
-
-```
-/claude-code /batch migrate all API endpoints to use the new error handler
-```
-
-## Troubleshooting
-
-### Authentication Issues
-
-```bash
-# Check auth status
-claude auth status
-
-# Re-authenticate
-claude auth login
-```
-
-### Permission Issues
-
-```bash
-# Run with specific permission mode
-claude --permission-mode plan "task"
-```
-
-### Session Issues
-
-```bash
-# List available sessions
-claude --resume
-
-# Fork a session (create new)
-claude -r old-session --fork-session "new task"
-```
-
-## Advanced Features
-
-### Sub-agents
-
-Run multiple Claude Code instances in parallel:
-
-```bash
-claude --agents '{
-  "reviewer": {
-    "description": "Code reviewer",
-    "prompt": "You are a senior code reviewer",
-    "tools": ["Read", "Grep", "Bash"]
+启用方式：在 \`~/.claude/settings.json\` 中添加：
+\`\`\`json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   }
-}'
-```
+}
+\`\`\`
 
-### Hooks
+使用方式：描述任务和团队结构，Claude Code 自动创建和管理团队。
 
-Automate actions before/after Claude Code runs:
+## OpenClaw 集成
 
-See [Hooks documentation](https://code.claude.com/docs/en/hooks.md)
+此 skill 提供以下功能：
+1. 检查 Claude Code 安装状态
+2. 执行单次任务
+3. 创建/管理子代理
+4. 启用 Agent Teams
 
-### MCP Servers
+## 示例
 
-Connect Claude Code to external tools:
+### 单次任务执行
+\`\`\`bash
+# 简单任务
+claude -p "解释这段代码做什么" --allowedTools "Read"
 
-```bash
-claude mcp add github '{"github_token": "..."}'
-```
+# 复杂任务
+claude -p "修复 auth.py 中的登录 bug" --allowedTools "Read,Edit,Bash" --output-format json
 
-## Resources
+# 指定模型
+claude -p "代码审查" --model sonnet
+\`\`\`
 
-- [Official Docs](https://code.claude.com/docs/)
-- [CLI Reference](https://code.claude.com/docs/en/cli-reference.md)
-- [Skills Guide](https://code.claude.com/docs/en/skills.md)
-- [MCP Documentation](https://code.claude.com/docs/en/mcp.md)
-- [Common Workflows](https://code.claude.com/docs/en/common-workflows.md)
+### Sub-agent 创建
+\`\`\`bash
+# 交互式创建
+claude --agents
 
----
+# 或手动创建 ~/.claude/agents/code-reviewer.md
+\`\`\`
 
-**Note**: Claude Code requires authentication. Run `claude auth login` before first use.
+### Agent Teams
+\`\`\`bash
+# 启用后，描述任务
+claude -p "创建一个团队：UX 设计师、技术架构师、代码审查员，共同设计新功能"
+\`\`\`
+
+## 注意事项
+
+- Headless 模式不支持交互式技能（如 /commit）
+- Sub-agents 和 Agent Teams 需要 Claude Code v2.1.32+
+- Agent Teams 目前是实验性功能
+- 令牌消耗：Sub-agents < Agent Teams < 单独会话
+
+## 相关文档
+
+- [Claude Code 官方文档](https://code.claude.com/docs/)
+- [Headless 模式](https://code.claude.com/docs/en/headless.md)
+- [Sub-agents](https://code.claude.com/docs/en/sub-agents.md)
+- [Agent Teams](https://code.claude.com/docs/en/agent-teams.md)
