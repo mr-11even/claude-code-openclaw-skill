@@ -1,97 +1,75 @@
-# Claude Code Agent Skill
+---
+name: claude-code-reviewer
+description: Use this skill when the user wants to run Claude Code for code review, review current git diff, inspect a PR or commit, or have a dedicated Claude Code subagent review code for correctness, security, maintainability, performance, and test coverage.
+---
 
-通过 OpenClaw 调用 Claude Code 执行编程任务。支持单次执行、子代理（Sub-agents）和 Agent Teams 模式。
+# Claude Code Reviewer
 
-## 激活条件
+Use this skill to run a dedicated Claude Code `code-reviewer` subagent and return high-signal review findings.
 
-当用户提到以下内容时使用：
-- "调用 claude code"、"用 claude code"、"run claude code"
-- "claude -p"、"headless mode"
-- "subagent"、"子代理"
-- "agent team"、"多代理"
+## When to use
 
-## 前置要求
+Use when asked to:
+- review current changes
+- review a commit, diff, or pull request
+- run Claude Code as a reviewer
+- check code quality, bugs, security, maintainability, performance, or tests
 
-1. Claude Code CLI 已安装：`curl -fsSL https://claude.ai/install.sh | bash`
-2. 已登录：`claude auth login`
-3. 环境变量已配置（ANTHROPIC_API_KEY 等）
+## What this skill does
 
-## 使用方法
+1. Ensure the Claude Code subagent `code-reviewer` exists at `~/.claude/agents/code-reviewer.md`.
+2. If missing, create it from `references/code-reviewer-subagent.md`.
+3. Run Claude Code in headless mode with the `code-reviewer` subagent.
+4. Prefer reviewing the current git diff first.
+5. Return grouped findings by severity with concrete fixes.
 
-### 1. 单次执行 (Headless Mode)
+## Workflow
 
-\`\`\`bash
-claude -p "你的任务描述" [选项]
-\`\`\`
+### 1. Verify repository context
 
-常用选项：
-- \`--allowedTools "Read,Edit,Bash"\` - 自动批准的工具
-- \`--output-format json\` - JSON 格式输出
-- \`--model sonnet|opus|haiku\` - 指定模型
+Run review inside the target repository. Prefer the user's current repo or the repo they explicitly mention.
 
-### 2. Sub-agents 模式
+### 2. Ensure subagent exists
 
-创建专用子代理处理特定任务。子代理定义在 \`~/.claude/agents/\` 目录。
+Check for:
 
-### 3. Agent Teams 模式
+```bash
+~/.claude/agents/code-reviewer.md
+```
 
-启用方式：在 \`~/.claude/settings.json\` 中添加：
-\`\`\`json
-{
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  }
-}
-\`\`\`
+If missing, create it from:
 
-使用方式：描述任务和团队结构，Claude Code 自动创建和管理团队。
+```text
+references/code-reviewer-subagent.md
+```
 
-## OpenClaw 集成
+### 3. Run review
 
-此 skill 提供以下功能：
-1. 检查 Claude Code 安装状态
-2. 执行单次任务
-3. 创建/管理子代理
-4. 启用 Agent Teams
+For current uncommitted changes, use:
 
-## 示例
+```bash
+scripts/run-review.sh .
+```
 
-### 单次任务执行
-\`\`\`bash
-# 简单任务
-claude -p "解释这段代码做什么" --allowedTools "Read"
+For a specific target, pass the repo path and optionally a custom prompt.
 
-# 复杂任务
-claude -p "修复 auth.py 中的登录 bug" --allowedTools "Read,Edit,Bash" --output-format json
+### 4. Summarize output
 
-# 指定模型
-claude -p "代码审查" --model sonnet
-\`\`\`
+Report:
+- overall assessment
+- findings by severity
+- top fixes first
+- whether the code looks merge-ready
 
-### Sub-agent 创建
-\`\`\`bash
-# 交互式创建
-claude --agents
+## Notes
 
-# 或手动创建 ~/.claude/agents/code-reviewer.md
-\`\`\`
+- This skill uses Claude Code CLI via `claude -p`.
+- The subagent is read-focused and should not modify code.
+- If the repo has no diff, ask Claude Code to review named files or the latest commit.
+- If Claude Code is unavailable, report that clearly instead of guessing.
 
-### Agent Teams
-\`\`\`bash
-# 启用后，描述任务
-claude -p "创建一个团队：UX 设计师、技术架构师、代码审查员，共同设计新功能"
-\`\`\`
+## Files in this skill
 
-## 注意事项
-
-- Headless 模式不支持交互式技能（如 /commit）
-- Sub-agents 和 Agent Teams 需要 Claude Code v2.1.32+
-- Agent Teams 目前是实验性功能
-- 令牌消耗：Sub-agents < Agent Teams < 单独会话
-
-## 相关文档
-
-- [Claude Code 官方文档](https://code.claude.com/docs/)
-- [Headless 模式](https://code.claude.com/docs/en/headless.md)
-- [Sub-agents](https://code.claude.com/docs/en/sub-agents.md)
-- [Agent Teams](https://code.claude.com/docs/en/agent-teams.md)
+- `references/code-reviewer-subagent.md` — canonical subagent definition
+- `scripts/ensure-subagent.sh` — installs the subagent if missing
+- `scripts/run-review.sh` — runs Claude Code review against a repo
