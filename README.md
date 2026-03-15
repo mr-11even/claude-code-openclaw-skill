@@ -1,22 +1,22 @@
 # claude-code-openclaw-skill
 
-OpenClaw skill for running Claude Code as a dedicated code reviewer.
+OpenClaw skill for delegating coding workflows to Claude Code.
 
-## Contents
+## Highlights
 
-- `SKILL.md` — skill instructions
-- `references/code-reviewer-subagent.md` — Claude Code subagent definition
-- `scripts/ensure-subagent.sh` — installs the subagent and readonly hook
-- `scripts/run-review.sh` — runs review via Claude Code CLI
+- direct Claude Code task execution
+- native spec-kit workflow preference for Claude Code projects
+- lower OpenClaw token usage by minimizing external orchestration
+- helper script for launching spec-kit end-to-end in a Claude Code project
 
-## Usage
+## Files
+
+- `SKILL.md`
+- `references/spec-kit-workflow.md`
+- `scripts/run-spec-kit-native.sh`
+
+## Example
 
 ```bash
-./scripts/run-review.sh .
-```
-
-Or specify a repository path:
-
-```bash
-./scripts/run-review.sh /path/to/repo
+./scripts/run-spec-kit-native.sh /path/to/project "Build a skeuomorphic todo list app"
 ```
